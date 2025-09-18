@@ -9,7 +9,7 @@ from pathlib import Path
 # === Настройки ===
 # Путь к git-репозиторию для хранения архивов
 GIT_REPO_PATH = str(Path.cwd() / "backup_repo")
-GIT_REMOTE_URL = "https://github.com/knowMe228/arch-migration.git"  # <-- замените на свой
+GIT_REMOTE_URL = "git@github.com:knowMe228/arch-migration.git"  # <-- замените на свой
 
 # Список репозиториев для автоматического клонирования
 GITHUB_REPOS = [
@@ -137,7 +137,7 @@ def backup():
     save_list("pipx_packages.txt", pipx_pkgs)
     save_list("flatpak_packages.txt", flatpak_pkgs)
     copy_configs()
-    upload_to_github()
+    upload_archives_with_script()
 
 
 # === Restore ===
@@ -221,46 +221,18 @@ def restore():
     restore_configs()
     print("\n[✅] Восстановление завершено!")
 
-def upload_to_github():
-    """Загрузка содержимого рабочей директории в GitHub репозиторий"""
-    try:
-        # Проверяем, существует ли .git директория, если нет - инициализируем
-        git_dir = WORKDIR / ".git"
-        if not git_dir.exists():
-            print("[+] Инициализация git репозитория...")
-            run_cmd(["git", "init"], cwd=WORKDIR)
-            run_cmd(["git", "remote", "add", "origin", GIT_REMOTE_URL], cwd=WORKDIR)
-            run_cmd(["git", "checkout", "-b", "main"], cwd=WORKDIR, check=False)
-        
-        # Добавляем все файлы
-        print("[+] Добавление файлов в индекс...")
-        run_cmd(["git", "add", "."], cwd=WORKDIR)
-        
-        # Создаем коммит с временной меткой
-        from datetime import datetime
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        commit_msg = f"Backup files - {timestamp}"
-        print(f"[+] Создание коммита: {commit_msg}")
-        run_cmd(["git", "commit", "-m", commit_msg], cwd=WORKDIR, check=False)
-        
-        # Пытаемся отправить изменения
-        print("[+] Отправка в GitHub репозиторий...")
-        result = run_cmd(["git", "push", "-u", "origin", "main"], cwd=WORKDIR, capture_output=True, check=False)
-        
-        # Если ветка main не существует на удаленном репозитории, создаем её
-        if "src refspec main does not match any" in result.stderr or "No such file or directory" in result.stderr:
-            print("[+] Создание ветки main на удаленном репозитории...")
-            run_cmd(["git", "push", "-u", "origin", "HEAD:main"], cwd=WORKDIR)
-        elif result.returncode != 0 and "failed to push" in result.stderr:
-            print("[+] Обновление с удаленного репозитория и повторная попытка...")
-            run_cmd(["git", "pull", "--rebase", "origin", "main"], cwd=WORKDIR, check=False)
-            run_cmd(["git", "push", "-u", "origin", "main"], cwd=WORKDIR)
-            
-        print("[+] Файлы успешно загружены в GitHub репозиторий")
-    except subprocess.CalledProcessError as e:
-        print(f"[!] Ошибка при загрузке в GitHub: {e}")
-    except Exception as e:
-        print(f"[!] Неожиданная ошибка при загрузке в GitHub: {e}")
+def upload_archives_with_script():
+    # Запускаем скрипт загрузки в GitHub
+    upload_script = WORKDIR / "upload_to_github.sh"
+    if upload_script.exists():
+        result = run_cmd(["bash", str(upload_script)], cwd=WORKDIR, capture_output=True, check=False)
+        print(result.stdout)
+        if result.returncode == 0:
+            print("[+] Файлы успешно загружены в GitHub")
+        else:
+            print(f"[!] Ошибка при загрузке в GitHub: {result.stderr}")
+    else:
+        print(f"[!] Скрипт загрузки не найден: {upload_script}")
 
 # === Entry Point ===
 def main():
