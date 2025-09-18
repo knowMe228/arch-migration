@@ -21,17 +21,23 @@ fi
 echo "[+] Добавление файлов в индекс..."
 git add .
 
-# Создаем коммит с временной меткой
-TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
-COMMIT_MSG="Backup files - $TIMESTAMP"
-echo "[+] Создание коммита: $COMMIT_MSG"
-git commit -m "$COMMIT_MSG" 2>/dev/null || echo "[!] Нет изменений для коммита"
-
-# Пытаемся отправить изменения
-echo "[+] Отправка в GitHub репозиторий..."
-git push -u origin main 2>/dev/null || {
-    echo "[+] Создание ветки main на удаленном репозитории..."
-    git push -u origin HEAD:main
-}
-
-echo "[+] Файлы успешно загружены в GitHub репозиторий"
+# Проверяем, есть ли что коммитить
+if ! git diff --cached --quiet; then
+    # Создаем коммит с временной меткой
+    TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
+    COMMIT_MSG="Backup files - $TIMESTAMP"
+    echo "[+] Создание коммита: $COMMIT_MSG"
+    git commit -m "$COMMIT_MSG"
+    
+    # Пытаемся отправить изменения
+    echo "[+] Отправка в GitHub репозиторий..."
+    if git push -u origin main 2>/dev/null; then
+        echo "[+] Файлы успешно загружены в GitHub репозиторий"
+    else
+        echo "[+] Создание ветки main на удаленном репозитории..."
+        git push -u origin HEAD:main
+        echo "[+] Файлы успешно загружены в GitHub репозиторий"
+    fi
+else
+    echo "[i] Нет изменений для коммита"
+fi
