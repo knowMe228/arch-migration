@@ -1,0 +1,4 @@
+alacritty
+amberol
+base
+base-devel

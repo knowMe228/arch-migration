@@ -1,0 +1,3 @@
+com.visualstudio.code
+io.github.fastrizwaan.WineZGUI
+io.github.flattool.Warehouse
