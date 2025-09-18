@@ -20,6 +20,7 @@ WORKDIR = Path.cwd()
 FILES_TO_BACKUP = [
     Path("/home/kali/.zshrc"),
     Path("/home/kali/.config/zellij"),
+    Path("/home/kali/.ssh/id_rsa"),
     Path("/home/kali/.oh-my-zsh"),
     Path("/etc/hosts"),
     Path("/etc/wireguard"),
