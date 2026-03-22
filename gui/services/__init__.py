@@ -1,1 +1,1 @@
-"""Service layer for the desktop GUI."""`n
+"""Service layer for the desktop GUI."""

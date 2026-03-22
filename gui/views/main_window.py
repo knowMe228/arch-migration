@@ -42,8 +42,10 @@ class MainWindow:
     def _build(self) -> None:
         container = ttk.Frame(self.root, padding=12)
         container.pack(fill="both", expand=True)
+
         notebook = ttk.Notebook(container)
         notebook.pack(fill="both", expand=True)
+
         self.overview_panel = OverviewPanel(notebook, on_refresh=self.refresh_overview)
         self.sync_panel = SyncPanel(notebook, actions={
             "refresh_packages": lambda: self.run_task("Refresh package lists", self.sync.refresh_package_lists),
@@ -67,11 +69,13 @@ class MainWindow:
             package_savers={label: (lambda content, item=label: self._save_package(item, content)) for label in self.context.package_files},
         )
         self.settings_panel = SettingsPanel(notebook, self._load_repos, self._save_repos)
+
         notebook.add(self.overview_panel, text="Overview")
         notebook.add(self.sync_panel, text="Sync")
         notebook.add(self.restore_panel, text="Restore")
         notebook.add(self.packages_panel, text="Packages")
         notebook.add(self.settings_panel, text="Settings")
+
         log_frame = ttk.LabelFrame(container, text="Activity log", padding=8)
         log_frame.pack(fill="both", expand=False, pady=(12, 0))
         self.log_widget = scrolledtext.ScrolledText(log_frame, wrap="word", height=14, state="disabled")
@@ -103,6 +107,7 @@ class MainWindow:
         if self.busy:
             messagebox.showinfo("Busy", "Another task is still running.")
             return
+
         self.busy = True
         self.status_var.set(label)
         self.log(f"== {label} ==")
@@ -127,41 +132,40 @@ class MainWindow:
         threading.Thread(target=worker, daemon=True).start()
 
     def refresh_overview(self) -> None:
+        remote = self.repo.remote_url()
         try:
-            release = self.releases.fetch_release_status()
+            release = self.releases.release_status(remote)
+            assets = release.get("assets", [])
+            asset_text = ", ".join(f"{asset.name} ({asset.size} bytes)" for asset in assets) if assets else "No assets found"
+            release_status = str(release.get("status", "Unknown"))
         except Exception as exc:  # noqa: BLE001
-            release = {"status": f"Unavailable ({exc})", "assets": "Unknown", "tag": self.context.release_tag}
-        data = {
+            release_status = f"Unavailable ({exc})"
+            asset_text = "Unknown"
+
+        self.overview_panel.update_data({
             "repo_path": str(self.context.repo_dir),
             "branch": self.repo.current_branch(),
-            "git_status": self.repo.working_tree_status(),
+            "git_status": self.repo.status_short() or "clean",
+            "remote": remote or "origin not configured",
             "token": "Detected" if self.checks.token_present() else "Missing",
-            "release": release.get("status", "Unknown"),
-            "release_assets": release.get("assets", "Unknown"),
-            "last_commit": self.repo.last_commit_summary(),
-        }
-        self.overview_panel.render(data)
-
-    def show_preflight(self) -> None:
-        summary = self.restore.preflight_summary()
-        self.log(summary)
-        messagebox.showinfo("Restore preflight", summary)
-
-    def _save_package(self, label: str, content: str) -> str:
-        self.packages.write_text(label, content)
-        self.refresh_overview()
-        return f"Saved {label}"
-
-    def _load_repos(self) -> str:
-        return self.context.repos_file.read_text(encoding="utf-8") if self.context.repos_file.exists() else ""
-
-    def _save_repos(self, content: str) -> str:
-        self.context.repos_file.write_text(content, encoding="utf-8")
-        self.refresh_overview()
-        return "Saved repos.pentest.txt"ronment" if self.context.token_present else "GITHUB_TOKEN not present",
+            "release_status": release_status,
+            "release_assets": asset_text,
+            "last_commit": self.repo.last_commit() or "No commits yet",
+        })
+        self.settings_panel.update_metadata({
+            "repo_path": str(self.context.repo_dir),
+            "branch": self.repo.current_branch(),
+            "remote": remote or "origin not configured",
+            "release_tag": self.context.release_tag,
+            "token_source": "Environment" if self.context.token_present else "GITHUB_TOKEN not present",
             "cache_dir": str(self.context.cache_dir),
             "pentest_dir": str(self.context.pentest_dir),
         })
+
+    def show_preflight(self) -> None:
+        summary = "\n".join(self.restore.run_preflight())
+        self.log(summary)
+        messagebox.showinfo("Restore preflight", summary)
 
     def _save_package(self, label: str, content: str) -> None:
         self.packages.save_text(label, content)
