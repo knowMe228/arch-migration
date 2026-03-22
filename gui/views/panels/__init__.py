@@ -1,0 +1,1 @@
+"""Notebook panels used by the main window."""

@@ -1,3 +1,7 @@
 # Prevent full pentest snapshots from entering git history.
 pentest/*
 !pentest/README.md
+
+# Python GUI build artifacts.
+__pycache__/
+*.pyc
