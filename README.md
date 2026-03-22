@@ -4,12 +4,12 @@ Portable, Git-tracked backup and restore workflow for an Arch Linux + BlackArch 
 
 ## Goal
 
-- `./sync.sh` captures the current workstation state into this repository.
+- `./sync.sh` captures the current workstation state into this repository and GitHub Releases.
 - `./scripts/install_all.sh` restores that state on a fresh Arch install.
-- No manual backup steps.
+- No manual backup steps after initial auth setup.
 - No secrets committed.
 
-## What Gets Tracked
+## What Gets Tracked In Git
 
 - Native packages from `pacman`
 - AUR packages from `pacman -Qqem`
@@ -18,7 +18,29 @@ Portable, Git-tracked backup and restore workflow for an Arch Linux + BlackArch 
 - Shell dotfiles: `.zshrc`, `.p10k.zsh`
 - `zellij` configuration from `~/.config/zellij/`
 - `oh-my-zsh` custom plugins and themes from `~/.oh-my-zsh/custom/`
-- A whitelist-only mirror of `~/pentest/`
+- Project scripts and metadata
+
+## What Happens To `~/pentest`
+
+`~/pentest` is no longer mirrored into the git repository.
+
+Instead, `sync.sh`:
+
+1. Scans `~/pentest` for likely secret filenames and text secrets
+2. Creates a full compressed archive of the whole directory
+3. Uploads the archive and its checksum to the GitHub Release tagged `pentest-latest`
+
+This avoids bloating git history while still preserving the full workspace on GitHub.
+
+## Requirements For Full Pentest Uploads
+
+To upload release assets, `sync.sh` needs a GitHub token in the environment:
+
+```bash
+export GITHUB_TOKEN=your_github_token
+```
+
+The token should have permission to create releases and upload release assets for this repository.
 
 ## Repository Layout
 
@@ -46,34 +68,10 @@ Portable, Git-tracked backup and restore workflow for an Arch Linux + BlackArch 
 3. Export pipx package list to `pkglist.pipx.txt`
 4. Export Flatpak app list to `pkglist.flatpak.txt`
 5. Sync dotfiles into `dotfiles/`
-6. Sync `~/pentest/` into `pentest/` using a whitelist-only `rsync`
-7. Scan synced files for likely secrets
-8. Stage all changes with `git add -A`
-9. Commit changes using `sync: YYYY-MM-DD HH:MM`
-10. Push to `origin main`
-
-The pentest sync includes only these file types:
-
-- `*.py`
-- `*.sh`
-- `*.md`
-- `*.txt`
-- `*.yaml`
-- `*.json`
-- `*.conf`
-- `*.toml`
-
-And excludes:
-
-- `.git/`
-- `node_modules/`
-- `*.pcap`
-- `*.cap`
-- `*.zip`
-- `*.tar*`
-- `*.bin`
-- `*.exe`
-- files larger than 5 MB
+6. Archive and upload the full `~/pentest/` directory to GitHub Releases
+7. Stage all git changes with `git add -A`
+8. Commit changes using `sync: YYYY-MM-DD HH:MM`
+9. Push to `origin main`
 
 ## How Restore Works
 
@@ -89,7 +87,7 @@ This will:
 2. Ensure the BlackArch keyring is installed
 3. Install packages from the tracked package lists
 4. Restore dotfiles with backups of existing files
-5. Restore `pentest/` into `~/pentest/`
+5. Download the latest pentest archive from GitHub Releases and restore it into `~/pentest/`
 
 ## Optional Pentest Repositories
 
@@ -100,9 +98,10 @@ Current scripts do not auto-clone this file yet, but it is tracked now so the wo
 ## Safety Notes
 
 - Do not store secrets in tracked files.
-- `sync.sh` aborts if it finds likely secrets in synced content.
+- `sync.sh` aborts if it finds likely secrets in synced dotfiles or in `~/pentest` before archiving.
 - Nested `.git` directories in synced dotfiles are excluded to avoid accidental submodule-like entries.
 - `yay` is not installed automatically.
+- Full pentest snapshots are kept out of git history and published as release assets instead.
 
 ## Validation
 
@@ -116,6 +115,7 @@ shellcheck sync.sh scripts/*.sh
 ## Typical Workflow
 
 ```bash
+export GITHUB_TOKEN=your_github_token
 ./sync.sh
 ```
 

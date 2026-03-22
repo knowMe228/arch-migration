@@ -7,14 +7,8 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly REPO_DIR
 DOTFILES_DIR="$REPO_DIR/dotfiles"
 readonly DOTFILES_DIR
-PENTEST_DIR="$REPO_DIR/pentest"
-readonly PENTEST_DIR
 HOME_DIR="$HOME"
 readonly HOME_DIR
-MAX_FILE_SIZE='5m'
-readonly MAX_FILE_SIZE
-ALLOWED_PATTERNS=("*.py" "*.sh" "*.md" "*.txt" "*.yaml" "*.json" "*.conf" "*.toml")
-readonly ALLOWED_PATTERNS
 SECRET_NAME_PATTERNS=("*.key" "*.pem" "id_rsa*" ".env" "*_secret*")
 readonly SECRET_NAME_PATTERNS
 SECRET_CONTENT_PATTERN='BEGIN [A-Z ]*PRIVATE KEY|api[_-]?key[[:space:]]*[:=]|token[[:space:]]*[:=]|password[[:space:]]*[:=]|AKIA[0-9A-Z]{16}'
@@ -37,35 +31,11 @@ sync_dotfiles() {
   rsync -a --delete --exclude='.git/' "$HOME_DIR/.oh-my-zsh/custom/" "$DOTFILES_DIR/oh-my-zsh/"
 }
 
-sync_pentest() {
-  local rsync_args=(
-    -a
-    --delete
-    --prune-empty-dirs
-    --max-size="$MAX_FILE_SIZE"
-    --include='*/'
-    --exclude='.git/'
-    --exclude='node_modules/'
-    --exclude='*.pcap'
-    --exclude='*.cap'
-    --exclude='*.zip'
-    --exclude='*.tar*'
-    --exclude='*.bin'
-    --exclude='*.exe'
-  )
-  local pattern
-  for pattern in "${ALLOWED_PATTERNS[@]}"; do
-    rsync_args+=(--include="$pattern")
-  done
-  rsync_args+=(--exclude='*')
-  mkdir -p "$PENTEST_DIR"
-  rsync "${rsync_args[@]}" "$HOME_DIR/pentest/" "$PENTEST_DIR/"
-}
-
 check_for_secret_names() {
-  local pattern
+  local scan_dir="$1"
+  local pattern=''
   for pattern in "${SECRET_NAME_PATTERNS[@]}"; do
-    if find "$DOTFILES_DIR" "$PENTEST_DIR" -type f -name "$pattern" -print -quit | grep -q .; then
+    if find "$scan_dir" -type f -name "$pattern" -print -quit | grep -q .; then
       log_error "Potential secret filename detected matching pattern: $pattern"
       return 1
     fi
@@ -73,12 +43,13 @@ check_for_secret_names() {
 }
 
 check_for_secret_contents() {
+  local scan_dir="$1"
   if command -v rg >/dev/null 2>&1; then
-    if rg -n -I -e "$SECRET_CONTENT_PATTERN" "$DOTFILES_DIR" "$PENTEST_DIR" >/dev/null; then
+    if rg -n -I -e "$SECRET_CONTENT_PATTERN" "$scan_dir" >/dev/null; then
       log_error 'Potential secret content detected in synced files'
       return 1
     fi
-  elif grep -RInE "$SECRET_CONTENT_PATTERN" "$DOTFILES_DIR" "$PENTEST_DIR" >/dev/null 2>&1; then
+  elif grep -RInI -E "$SECRET_CONTENT_PATTERN" "$scan_dir" >/dev/null 2>&1; then
     log_error 'Potential secret content detected in synced files'
     return 1
   fi
@@ -118,14 +89,16 @@ main() {
   set_current_step 'Syncing dotfiles'
   log_step 5 "$TOTAL_STEPS" "$CURRENT_STEP_MESSAGE"
   sync_dotfiles
-  log_success 'Synced dotfiles'
+  check_for_secret_names "$DOTFILES_DIR"
+  check_for_secret_contents "$DOTFILES_DIR"
+  log_success 'Synced dotfiles and verified no secrets were detected'
 
-  set_current_step 'Syncing pentest workspace'
+  set_current_step 'Publishing full pentest snapshot to GitHub Releases'
   log_step 6 "$TOTAL_STEPS" "$CURRENT_STEP_MESSAGE"
-  sync_pentest
-  check_for_secret_names
-  check_for_secret_contents
-  log_success 'Synced pentest workspace and verified no secrets were detected'
+  check_for_secret_names "$HOME_DIR/pentest"
+  check_for_secret_contents "$HOME_DIR/pentest"
+  "$REPO_DIR/scripts/pentest_release.sh" upload-latest
+  log_success 'Published full pentest snapshot to GitHub Releases'
 
   set_current_step 'Staging git changes'
   log_step 7 "$TOTAL_STEPS" "$CURRENT_STEP_MESSAGE"
