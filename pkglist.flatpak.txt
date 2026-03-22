@@ -1,0 +1,9 @@
+com.rafaelmardojai.Blanket
+com.visualstudio.code
+io.github.fastrizwaan.WineZGUI
+io.github.flattool.Warehouse
+io.podman_desktop.PodmanDesktop
+org.audacityteam.Audacity
+org.remmina.Remmina
+org.telegram.desktop
+org.winehq.Wine

@@ -1,0 +1,49 @@
+vars:
+  global_var: "Global value"
+  path: "/home/kali"
+cmds:
+bookmarks:
+- name: "nuclei"
+  desc: "scan web."
+  cmds:
+  - "/home/kali/pentest/nuclei -u $TARGET:$PORT"
+  exec: false
+  labels:
+- name: "ffuf"
+  desc: "scan subdomens"
+  cmds:
+  - "ffuf -w /usr/share/SecLists/Discovery/DNS/subdomains-top1million-5000.txt  -u http://FUZZ.$TARGET/"
+  exec: false
+  labels:
+- name: "gobuster"
+  desc: "fuzz"
+  cmds:
+  - "gobuster dir -u http://$TARGET:$PORT -w '/usr/share/SecLists/Discovery/Web-Content/directory-list-2.3-medium.txt' -x txt,php -t 30 -b 202,404 "
+  exec: false
+  labels:
+
+- name: "rustscan"
+  desc: "scan port."
+  cmds:
+  - "bash /home/kali/pentest/nm.sh $TARGET"
+  exec: false
+  labels:
+
+- name: "gather script"
+  desc: "scan all web"
+  cmds:
+  - "zellij --layout=/home/kali/Desktop/gather.kdl "
+  exec: true
+  labels:
+- name: "nikto"
+  desc: "nikto."
+  cmds:
+  - "nikto -h $TARGET"
+  exec: false
+  labels:
+- name: "CS server"
+  desc: "nikto."
+  cmds:
+  - "sudo bash /home/kali/pentest/CS/Server/teamserver 192.169.101.68 test"
+  exec: false
+  labels:

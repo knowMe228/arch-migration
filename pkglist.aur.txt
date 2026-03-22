@@ -1,0 +1,9 @@
+coreimage
+eovpn
+gnu-netcat
+octopi
+outline-client-appimage
+stacer-git
+warp-terminal
+yay-bin
+yay-bin-debug
