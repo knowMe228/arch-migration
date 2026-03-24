@@ -4,78 +4,95 @@ set -euo pipefail
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly REPO_DIR
 PACMAN_LIST="$REPO_DIR/pkglist.pacman.txt"
-readonly PACMAN_LIST
 AUR_LIST="$REPO_DIR/pkglist.aur.txt"
-readonly AUR_LIST
 PIPX_LIST="$REPO_DIR/pkglist.pipx.txt"
-readonly PIPX_LIST
 FLATPAK_LIST="$REPO_DIR/pkglist.flatpak.txt"
-readonly FLATPAK_LIST
 
 source "$REPO_DIR/scripts/common.sh"
 trap 'handle_unexpected_error "$?" "$LINENO" "$BASH_COMMAND"' ERR
 
-install_pacman_packages() {
-  local packages=()
-  if file_has_entries "$PACMAN_LIST"; then
-    mapfile -t packages < "$PACMAN_LIST"
-    # sudo is required here because pacman installs system packages.
-    sudo pacman -S --needed --noconfirm "${packages[@]}"
-  else
-    log_warn 'pkglist.pacman.txt is empty; skipping pacman packages'
+read_list_items() {
+  local file_path="$1"
+  if [[ ! -f "$file_path" ]]; then
+    return 0
   fi
+
+  grep -Ev '^\s*(#|$|Application ID$)' "$file_path" || true
+}
+
+install_pacman_packages() {
+  if ! command -v pacman >/dev/null 2>&1; then
+    log_error "pacman not found"
+    return 1
+  fi
+
+  mapfile -t packages < <(read_list_items "$PACMAN_LIST")
+  if [[ "${#packages[@]}" -eq 0 ]]; then
+    log_warn "pkglist.pacman.txt is empty"
+    return 0
+  fi
+
+  sudo pacman -S --needed --noconfirm "${packages[@]}"
 }
 
 install_aur_packages() {
-  local packages=()
-  if ! file_has_entries "$AUR_LIST"; then
-    log_warn 'pkglist.aur.txt is empty; skipping AUR packages'
-    return
+  mapfile -t packages < <(read_list_items "$AUR_LIST")
+  if [[ "${#packages[@]}" -eq 0 ]]; then
+    log_warn "pkglist.aur.txt is empty"
+    return 0
   fi
+
   if ! command -v yay >/dev/null 2>&1; then
-    log_warn 'yay is not installed; skipping AUR packages'
-    return
+    log_warn "yay is not installed; skipping AUR packages"
+    return 0
   fi
-  mapfile -t packages < "$AUR_LIST"
+
   yay -S --needed --noconfirm "${packages[@]}"
 }
 
 install_pipx_packages() {
+  mapfile -t packages < <(read_list_items "$PIPX_LIST")
+  if [[ "${#packages[@]}" -eq 0 ]]; then
+    log_warn "pkglist.pipx.txt is empty"
+    return 0
+  fi
+
   if ! command -v pipx >/dev/null 2>&1; then
-    log_warn 'pipx is not installed; skipping pipx packages'
-    return
+    log_warn "pipx is not installed; skipping pipx packages"
+    return 0
   fi
-  if file_has_entries "$PIPX_LIST"; then
-    while IFS= read -r package_name; do
-      [ -n "$package_name" ] || continue
-      if pipx list --short 2>/dev/null | grep -Fxq "$package_name"; then
-        log_warn "pipx package already installed: $package_name"
-        continue
-      fi
-      pipx install "$package_name"
-    done < "$PIPX_LIST"
-  else
-    log_warn 'pkglist.pipx.txt is empty; skipping pipx packages'
-  fi
+
+  mapfile -t installed < <(pipx list --short 2>/dev/null | awk '{print $1}' || true)
+  for package_name in "${packages[@]}"; do
+    if printf '%s\n' "${installed[@]}" | grep -Fxq "$package_name"; then
+      log_warn "pipx package already installed: $package_name"
+      continue
+    fi
+
+    pipx install "$package_name"
+  done
 }
 
 install_flatpak_packages() {
+  mapfile -t apps < <(read_list_items "$FLATPAK_LIST")
+  if [[ "${#apps[@]}" -eq 0 ]]; then
+    log_warn "pkglist.flatpak.txt is empty"
+    return 0
+  fi
+
   if ! command -v flatpak >/dev/null 2>&1; then
-    log_warn 'flatpak is not installed; skipping Flatpak packages'
-    return
+    log_warn "flatpak is not installed; skipping Flatpak packages"
+    return 0
   fi
-  if file_has_entries "$FLATPAK_LIST"; then
-    while IFS= read -r package_name; do
-      [ -n "$package_name" ] || continue
-      if flatpak list --app --columns=application | grep -Fxq "$package_name"; then
-        log_warn "Flatpak already installed: $package_name"
-        continue
-      fi
-      flatpak install -y "$package_name"
-    done < "$FLATPAK_LIST"
-  else
-    log_warn 'pkglist.flatpak.txt is empty; skipping Flatpak packages'
-  fi
+
+  for app_id in "${apps[@]}"; do
+    if flatpak list --app --columns=application | grep -Fxq "$app_id"; then
+      log_warn "Flatpak already installed: $app_id"
+      continue
+    fi
+
+    flatpak install -y flathub "$app_id"
+  done
 }
 
 main() {

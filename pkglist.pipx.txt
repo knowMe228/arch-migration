@@ -1,7 +1,7 @@
-arjun 2.2.7
-bloodyad 2.1.23
-impacket 0.12.0
-netexec 1.4.0+448.d28b11df
-penelope 0.14.8
-pwncat-vl 0.5.9
-sploitscan 0.13.0
+arjun
+bloodyad
+impacket
+netexec
+penelope
+pwncat-vl
+sploitscan

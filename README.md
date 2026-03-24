@@ -175,3 +175,30 @@ git clone <your-repo-url>
 cd pentest-env
 ./scripts/install_all.sh
 ```
+## Remote Arsenal Inventory Flow
+
+Use this when you want to clone the same tool arsenal from another Arch/BlackArch host.
+
+1. Run inventory against the source host:
+
+```bash
+./scripts/inventory_remote_tools.sh --host 192.168.0.176 --user kali
+```
+
+2. Review generated artifacts in repo root:
+
+- `pkglist.pacman.txt`
+- `pkglist.aur.txt`
+- `pkglist.pipx.txt`
+- `pkglist.flatpak.txt`
+- `pkglist.blackarch.txt`
+- `arsenal.manual.csv`
+- `arsenal.report.md`
+
+3. On a fresh Arch/BlackArch system, restore with:
+
+```bash
+./scripts/install_all.sh
+```
+
+`install_all.sh` applies package manifests automatically and prints a warning for tools listed in `arsenal.manual.csv`, which require manual follow-up.
