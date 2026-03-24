@@ -99,36 +99,41 @@ warn_manual_tools() {
 
 main() {
   set_current_step 'Verifying Arch Linux'
-  log_step 1 7 "$CURRENT_STEP_MESSAGE"
+  log_step 1 8 "$CURRENT_STEP_MESSAGE"
   ensure_arch_linux
   log_success 'Arch Linux detected'
 
   set_current_step 'Ensuring BlackArch keyring is installed'
-  log_step 2 7 "$CURRENT_STEP_MESSAGE"
+  log_step 2 8 "$CURRENT_STEP_MESSAGE"
   ensure_blackarch_keyring
   log_success 'BlackArch keyring processed'
 
   set_current_step 'Installing package manager content'
-  log_step 3 7 "$CURRENT_STEP_MESSAGE"
+  log_step 3 8 "$CURRENT_STEP_MESSAGE"
   "$REPO_DIR/scripts/install_packages.sh"
   log_success 'Package installation completed'
 
   set_current_step 'Installing dotfiles'
-  log_step 4 7 "$CURRENT_STEP_MESSAGE"
+  log_step 4 8 "$CURRENT_STEP_MESSAGE"
   "$REPO_DIR/scripts/install_dotfiles.sh"
   log_success 'Dotfiles installation completed'
 
+  set_current_step 'Restoring XFCE desktop state'
+  log_step 5 8 "$CURRENT_STEP_MESSAGE"
+  "$REPO_DIR/scripts/install_desktop_state.sh"
+  log_success 'XFCE desktop state restoration completed'
+
   set_current_step 'Restoring pentest workspace'
-  log_step 5 7 "$CURRENT_STEP_MESSAGE"
+  log_step 6 8 "$CURRENT_STEP_MESSAGE"
   "$REPO_DIR/scripts/install_pentest.sh"
   log_success 'Pentest workspace restoration completed'
 
   set_current_step 'Validating BlackArch manifest (report only)'
-  log_step 6 7 "$CURRENT_STEP_MESSAGE"
+  log_step 7 8 "$CURRENT_STEP_MESSAGE"
   validate_blackarch_manifest
 
   set_current_step 'Checking unmanaged/manual tools (report only)'
-  log_step 7 7 "$CURRENT_STEP_MESSAGE"
+  log_step 8 8 "$CURRENT_STEP_MESSAGE"
   warn_manual_tools
 
   clear_current_step

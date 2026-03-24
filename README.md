@@ -43,6 +43,7 @@ The GUI reads `GITHUB_TOKEN` from the environment only. It does not store tokens
 - Shell dotfiles: `.zshrc`, `.p10k.zsh`
 - `zellij` configuration from `~/.config/zellij/`
 - full `oh-my-zsh` directory from `~/.oh-my-zsh/`
+- XFCE visual state: panels, launchers, themes/icons, desktop shortcuts
 - Project scripts, GUI sources, and metadata
 
 ## What Happens To `~/pentest`
@@ -95,10 +96,11 @@ The token should have permission to create releases and upload release assets fo
 3. Export pipx package list to `pkglist.pipx.txt`
 4. Export Flatpak app list to `pkglist.flatpak.txt`
 5. Sync dotfiles into `dotfiles/`
-6. Archive and upload the full `~/pentest/` directory to GitHub Releases
-7. Stage all git changes with `git add -A`
-8. Commit changes using `sync: YYYY-MM-DD HH:MM`
-9. Push to `origin main`
+6. Sync XFCE desktop state into `desktop-state/xfce/`
+7. Archive and upload the full `~/pentest/` directory to GitHub Releases
+8. Stage all git changes with `git add -A`
+9. Commit changes using `sync: YYYY-MM-DD HH:MM`
+10. Push to `origin main`
 
 ## What The GUI Can Do
 
@@ -128,7 +130,8 @@ Restore will:
 2. Ensure the BlackArch keyring is installed
 3. Install packages from the tracked package lists
 4. Restore dotfiles with backups of existing files
-5. Download the latest pentest archive from GitHub Releases and restore it into `~/pentest/`
+5. Restore XFCE desktop state from `desktop-state/xfce/`
+6. Download the latest pentest archive from GitHub Releases and restore it into `~/pentest/`
 
 ## Optional Pentest Repositories
 

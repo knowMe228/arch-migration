@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-TOTAL_STEPS=9
+TOTAL_STEPS=10
 readonly TOTAL_STEPS
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly REPO_DIR
@@ -93,20 +93,27 @@ main() {
   check_for_secret_contents "$DOTFILES_DIR"
   log_success 'Synced dotfiles and verified no secrets were detected'
 
-  set_current_step 'Publishing full pentest snapshot to GitHub Releases'
+  set_current_step 'Syncing XFCE desktop state'
   log_step 6 "$TOTAL_STEPS" "$CURRENT_STEP_MESSAGE"
+  "$REPO_DIR/scripts/sync_desktop_state.sh"
+  check_for_secret_names "$REPO_DIR/desktop-state"
+  check_for_secret_contents "$REPO_DIR/desktop-state"
+  log_success 'Synced XFCE desktop state and verified no secrets were detected'
+
+  set_current_step 'Publishing full pentest snapshot to GitHub Releases'
+  log_step 7 "$TOTAL_STEPS" "$CURRENT_STEP_MESSAGE"
   check_for_secret_names "$HOME_DIR/pentest"
   check_for_secret_contents "$HOME_DIR/pentest"
   "$REPO_DIR/scripts/pentest_release.sh" upload-latest
   log_success 'Published full pentest snapshot to GitHub Releases'
 
   set_current_step 'Staging git changes'
-  log_step 7 "$TOTAL_STEPS" "$CURRENT_STEP_MESSAGE"
+  log_step 8 "$TOTAL_STEPS" "$CURRENT_STEP_MESSAGE"
   git -C "$REPO_DIR" add -A
   log_success 'Staged git changes'
 
   set_current_step 'Creating sync commit when needed'
-  log_step 8 "$TOTAL_STEPS" "$CURRENT_STEP_MESSAGE"
+  log_step 9 "$TOTAL_STEPS" "$CURRENT_STEP_MESSAGE"
   if git_has_changes; then
     git -C "$REPO_DIR" commit -m "sync: $(date '+%Y-%m-%d %H:%M')"
     log_success 'Created sync commit'
@@ -115,7 +122,7 @@ main() {
   fi
 
   set_current_step 'Pushing to origin main'
-  log_step 9 "$TOTAL_STEPS" "$CURRENT_STEP_MESSAGE"
+  log_step 10 "$TOTAL_STEPS" "$CURRENT_STEP_MESSAGE"
   git -C "$REPO_DIR" push origin main
   log_success 'Pushed to origin main'
   clear_current_step

@@ -8,7 +8,7 @@ INVENTORY_STRICT ?=
 INVENTORY_IDENTITY ?=
 INVENTORY_SSH_OPTS ?=
 
-SCRIPTS := scripts/common.sh scripts/install_all.sh scripts/install_packages.sh scripts/install_dotfiles.sh scripts/install_pentest.sh scripts/inventory_remote_tools.sh scripts/inventory_manual_probe.sh scripts/inventory_system_facts_probe.sh scripts/inventory_report_generate.sh
+SCRIPTS := scripts/common.sh scripts/install_all.sh scripts/install_packages.sh scripts/install_dotfiles.sh scripts/install_desktop_state.sh scripts/install_pentest.sh scripts/sync_desktop_state.sh scripts/inventory_remote_tools.sh scripts/inventory_manual_probe.sh scripts/inventory_system_facts_probe.sh scripts/inventory_report_generate.sh
 
 .PHONY: validate inventory-remote
 
