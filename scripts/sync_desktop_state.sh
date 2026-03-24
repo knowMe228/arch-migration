@@ -32,9 +32,11 @@ main() {
   log_step 1 4 'Syncing XFCE core settings'
   sync_tree "$HOME_DIR/.config/xfce4" "$DESKTOP_STATE_DIR/.config/xfce4"
 
-  log_step 2 4 'Syncing panel launchers and application entries'
+  log_step 2 4 'Syncing panel launchers, dock, and application entries'
   sync_tree "$HOME_DIR/.local/share/xfce4" "$DESKTOP_STATE_DIR/.local/share/xfce4"
   sync_tree "$HOME_DIR/.local/share/applications" "$DESKTOP_STATE_DIR/.local/share/applications"
+  sync_tree "$HOME_DIR/.config/plank" "$DESKTOP_STATE_DIR/.config/plank"
+  sync_tree "$HOME_DIR/.local/share/plank" "$DESKTOP_STATE_DIR/.local/share/plank"
 
   log_step 3 4 'Syncing GTK and file-manager preferences'
   sync_tree "$HOME_DIR/.config/gtk-3.0" "$DESKTOP_STATE_DIR/.config/gtk-3.0"

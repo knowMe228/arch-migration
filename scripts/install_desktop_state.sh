@@ -49,9 +49,11 @@ main() {
   log_step 1 4 'Restoring XFCE core settings'
   install_tree "$DESKTOP_STATE_DIR/.config/xfce4" "$HOME_DIR/.config/xfce4"
 
-  log_step 2 4 'Restoring panel launchers and application entries'
+  log_step 2 4 'Restoring panel launchers, dock, and application entries'
   install_tree "$DESKTOP_STATE_DIR/.local/share/xfce4" "$HOME_DIR/.local/share/xfce4"
   install_tree "$DESKTOP_STATE_DIR/.local/share/applications" "$HOME_DIR/.local/share/applications"
+  install_tree "$DESKTOP_STATE_DIR/.config/plank" "$HOME_DIR/.config/plank"
+  install_tree "$DESKTOP_STATE_DIR/.local/share/plank" "$HOME_DIR/.local/share/plank"
 
   log_step 3 4 'Restoring GTK and file-manager preferences'
   install_tree "$DESKTOP_STATE_DIR/.config/gtk-3.0" "$HOME_DIR/.config/gtk-3.0"
