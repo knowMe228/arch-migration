@@ -21,7 +21,7 @@ repo/
 │   ├── .zshrc
 │   ├── .p10k.zsh
 │   ├── zellij/               # full zellij config dir
-│   └── oh-my-zsh/            # only custom plugins & themes, NOT the whole install
+│   └── oh-my-zsh/            # full oh-my-zsh directory copy
 ├── pentest/                  # mirror of ~/pentest (whitelist-only via rsync)
 └── scripts/
     ├── install_all.sh        # full environment restore from scratch
@@ -39,7 +39,7 @@ repo/
 5. Sync dotfiles:
    - `.zshrc`, `.p10k.zsh` from `$HOME`
    - `$HOME/.config/zellij/` → `dotfiles/zellij/`
-   - `$HOME/.oh-my-zsh/custom/` → `dotfiles/oh-my-zsh/`
+   - `$HOME/.oh-my-zsh/` → `dotfiles/oh-my-zsh/`
 6. Sync `~/pentest/` → `pentest/` via rsync whitelist:
    - Allowed: `*.py`, `*.sh`, `*.md`, `*.txt`, `*.yaml`, `*.json`, `*.conf`, `*.toml`
    - Excluded: `*.pcap`, `*.cap`, `*.zip`, `*.tar*`, `*.bin`, `*.exe`, `node_modules/`, `.git/`

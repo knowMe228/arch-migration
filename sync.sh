@@ -28,7 +28,7 @@ sync_dotfiles() {
   install -Dm644 "$HOME_DIR/.p10k.zsh" "$DOTFILES_DIR/.p10k.zsh"
   mkdir -p "$DOTFILES_DIR/zellij" "$DOTFILES_DIR/oh-my-zsh"
   rsync -a --delete --exclude='.git/' "$HOME_DIR/.config/zellij/" "$DOTFILES_DIR/zellij/"
-  rsync -a --delete --exclude='.git/' "$HOME_DIR/.oh-my-zsh/custom/" "$DOTFILES_DIR/oh-my-zsh/"
+  rsync -a --delete --exclude='.git/' "$HOME_DIR/.oh-my-zsh/" "$DOTFILES_DIR/oh-my-zsh/"
 }
 
 check_for_secret_names() {

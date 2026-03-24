@@ -42,7 +42,7 @@ The GUI reads `GITHUB_TOKEN` from the environment only. It does not store tokens
 - `flatpak` applications
 - Shell dotfiles: `.zshrc`, `.p10k.zsh`
 - `zellij` configuration from `~/.config/zellij/`
-- `oh-my-zsh` custom plugins and themes from `~/.oh-my-zsh/custom/`
+- full `oh-my-zsh` directory from `~/.oh-my-zsh/`
 - Project scripts, GUI sources, and metadata
 
 ## What Happens To `~/pentest`

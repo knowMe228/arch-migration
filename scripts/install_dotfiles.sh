@@ -58,10 +58,10 @@ main() {
   link_with_backup "$DOTFILES_DIR/zellij" "$HOME_DIR/.config/zellij"
   log_success 'Installed zellij config'
 
-  set_current_step 'Linking oh-my-zsh custom config'
+  set_current_step 'Linking full oh-my-zsh config'
   log_step 4 4 "$CURRENT_STEP_MESSAGE"
-  link_with_backup "$DOTFILES_DIR/oh-my-zsh" "$HOME_DIR/.oh-my-zsh/custom"
-  log_success 'Installed oh-my-zsh custom config'
+  link_with_backup "$DOTFILES_DIR/oh-my-zsh" "$HOME_DIR/.oh-my-zsh"
+  log_success 'Installed full oh-my-zsh config'
   clear_current_step
 }
 
